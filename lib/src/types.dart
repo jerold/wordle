@@ -1,13 +1,37 @@
 import 'package:wordle/src/utils.dart';
 
 const wordLength = 5;
-final emptyPatter = Result(List<Info>.filled(wordLength, Info.miss));
+
+const initialIndex = 0;
+const emptyLetter = ' ';
+
+final initialLetters = List<String>.filled(wordLength, emptyLetter);
+final initialInfos = List<Info>.filled(wordLength, Info.tbd);
 final victoryPatter = Result(List<Info>.filled(wordLength, Info.correct));
 
-abstract class RowData {
-  String get word;
-  Result get result;
-  int get index;
+final emptyInfos = List<Info>.filled(wordLength, Info.absent);
+
+class RowData {
+  final List<String> _letters;
+  final List<Info> _infos;
+
+  RowData({List<String>? letters, List<Info>? infos})
+      : _letters = letters?.toList() ?? initialLetters.toList(),
+        _infos = infos?.toList() ?? initialInfos.toList();
+
+  RowData copyWith(int index, {String? letter, Info? info}) {
+    assert(index >= 0 && index < wordLength, "invalid RowData copy (index out of bounds $index)");
+    return RowData(
+      letters: letter != null ? (letters..[index] = letter) : letters,
+      infos: info != null ? (infos..[index] = info) : infos,
+    );
+  }
+
+  List<String> get letters => _letters.toList();
+  List<Info> get infos => _infos.toList();
+
+  String get word => letters.join();
+  Result get result => Result(infos);
 }
 
 class Guess {
@@ -28,9 +52,36 @@ class Guess {
 }
 
 enum Info {
-  miss,
-  close,
+  tbd,
+  absent,
+  present,
   correct,
+}
+
+extension InfoX on Info {
+  Info get cycleUp => Info.values[(index + 1) % Info.values.length];
+  Info get cycleDown => Info.values[(index - 1 + Info.values.length) % Info.values.length];
+}
+
+class InfoClass {
+  static const String tbd = 'tbd';
+  static const String empty = 'empty';
+  static const String absent = 'absent';
+  static const String present = 'present';
+  static const String correct = 'correct';
+
+  static from(Info into) {
+    switch (into) {
+      case Info.tbd:
+        return InfoClass.tbd;
+      case Info.absent:
+        return InfoClass.absent;
+      case Info.present:
+        return InfoClass.present;
+      case Info.correct:
+        return InfoClass.correct;
+    }
+  }
 }
 
 // represents the pattern when comparing a guess to an answer. Letters that
@@ -59,7 +110,7 @@ class Result {
       charCountInAnswer[letter] = charCountInAnswer[letter]! + 1;
     }
 
-    final infos = List<Info>.filled(guess.length, Info.miss);
+    final infos = emptyInfos.toList();
     // go through and mark correct placement
     for (var i = 0; i < guess.length; i++) {
       final guessChar = guess[i];
@@ -76,7 +127,7 @@ class Result {
       if (infos[i] != Info.correct) {
         if (charCountInAnswer.containsKey(guessChar) && charCountUsed[guessChar]! < charCountInAnswer[guessChar]!) {
           charCountUsed[guessChar] = charCountUsed[guessChar]! + 1;
-          infos[i] = Info.close;
+          infos[i] = Info.present;
         }
       }
     }
@@ -86,7 +137,7 @@ class Result {
   @override
   String toString() => infos.map((v) {
         if (v == Info.correct) return '🟩';
-        if (v == Info.close) return '🟨';
+        if (v == Info.present) return '🟨';
         return '⬛';
       }).join();
 

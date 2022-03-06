@@ -7,9 +7,7 @@ import 'package:wordle/wordle.dart';
 
 const alphabet = 'abcdefghijklmnopqrstuvwxyz';
 
-const defaultIndex = 0;
-final defaultLetters = List<String>.filled(wordLength, ' ');
-final defaultInfos = List<Info>.filled(wordLength, Info.miss);
+Element? get _parentElement => querySelector('#helper');
 
 enum CursorInput {
   left,
@@ -22,11 +20,10 @@ enum CursorInput {
 const Map<int, HelperUpdate> helperBindings = {
   KeyCode.ESC: HelperUpdate.reset,
   KeyCode.ENTER: HelperUpdate.create,
+  KeyCode.TILDE: HelperUpdate.toggle,
 };
 
 const Map<int, CursorInput> cursorBindings = {
-  KeyCode.LEFT: CursorInput.left,
-  KeyCode.RIGHT: CursorInput.right,
   KeyCode.UP: CursorInput.up,
   KeyCode.DOWN: CursorInput.down,
   KeyCode.BACKSPACE: CursorInput.delete,
@@ -35,14 +32,15 @@ const Map<int, CursorInput> cursorBindings = {
 void main() {
   final controller = WebController();
   final renderer = WebRenderer();
-  Helper(controller, renderer, play: true).init();
+  Helper(controller, renderer, play: false).init();
 }
 
 class WebController extends Controller {
   late final StreamController<HelperUpdate> _helperController;
 
-  late List<String> _letters;
-  late List<Info> _infos;
+  Element get _keyboardElement => _parentElement!.querySelector('#keyboard')!;
+
+  late RowData _rowData;
   late int _index;
 
   WebController() {
@@ -50,24 +48,26 @@ class WebController extends Controller {
     _initRowData();
 
     document.body!.onKeyDown.listen(_onKeyDown);
+
+    for (final letter in alphabet.split('')) {
+      _keyboardElement.querySelector('#$letter')!.onClick.listen(_onClickLetter(letter));
+    }
+    _keyboardElement.querySelector('#submit')!.onClick.listen((_) => _updateHelper(HelperUpdate.create));
+    _keyboardElement.querySelector('#delete')!.onClick.listen((_) => _onCursorInput(CursorInput.delete));
   }
 
   @override
   Stream<HelperUpdate> get update => _helperController.stream;
 
   @override
-  String get word => _letters.join();
-
-  @override
-  Result get result => Result(_infos);
+  RowData get rowData => _rowData;
 
   @override
   int get index => _index;
 
   void _initRowData() {
-    _letters = defaultLetters.toList();
-    _infos = defaultInfos.toList();
-    _index = defaultIndex;
+    _rowData = RowData();
+    _index = initialIndex;
   }
 
   @override
@@ -75,6 +75,8 @@ class WebController extends Controller {
     _initRowData();
     _updateHelper(HelperUpdate.update);
   }
+
+  void Function(MouseEvent) _onClickLetter(String letter) => (MouseEvent _) => _onCharacterInsert(letter);
 
   void _onKeyDown(KeyboardEvent e) {
     if (helperBindings.containsKey(e.keyCode)) {
@@ -91,19 +93,22 @@ class WebController extends Controller {
   void _onCursorInput(CursorInput input) {
     switch (input) {
       case CursorInput.left:
-        _index = (_index - 1 + wordLength) % wordLength;
+        _index = max(_index - 1, 0);
         break;
       case CursorInput.right:
-        _index = (_index + 1) % wordLength;
+        _index = min(wordLength, _index + 1);
         break;
       case CursorInput.up:
-        _infos[_index] = Info.values[(_infos[_index].index + 1) % Info.values.length];
+        if (_index == 0) return;
+        _rowData = _rowData.copyWith(_index - 1, info: _rowData.infos[index - 1].cycleUp);
         break;
       case CursorInput.down:
-        _infos[_index] = Info.values[(_infos[_index].index - 1 + Info.values.length) % Info.values.length];
+        if (_index == 0) return;
+        _rowData = _rowData.copyWith(_index - 1, info: _rowData.infos[index - 1].cycleDown);
         break;
       case CursorInput.delete:
-        _letters[_index] = ' ';
+        if (_index == 0) return;
+        _rowData = _rowData.copyWith(_index - 1, letter: emptyLetter, info: Info.tbd);
         _onCursorInput(CursorInput.left);
         break;
     }
@@ -111,28 +116,88 @@ class WebController extends Controller {
   }
 
   void _onCharacterInsert(String char) {
-    _letters[_index] = char;
+    if (_index == wordLength) return;
+    _rowData = _rowData.copyWith(_index, letter: char.toLowerCase(), info: Info.tbd);
     _onCursorInput(CursorInput.right);
   }
 }
 
 class WebRenderer extends Renderer {
-  @override
-  void init() {}
+  WebRenderer();
+
+  Element get _boardElement => _parentElement!.querySelector('#board')!;
+  Element get _candidatesElement => _parentElement!.querySelector('#candidates')!;
+  Element get _keyboardElement => _parentElement!.querySelector('#keyboard')!;
+
+  String? _prevCandidatesHash;
 
   @override
-  void paint(List<Guess> guesses, List<Result> results, RowData rowData) {
-    for (int i = 0; i < guesses.length; i++) {
-      print('${guesses[i].word} ${results[i]}');
+  void init() {
+    assert(_parentElement != null, "Failed to mount Helper, unable to find element");
+  }
+
+  @override
+  void paint(List<RowData> rows) {
+    _paintBoard(rows);
+    _paintKeyboard(rows);
+  }
+
+  @override
+  void paintCandidates(List<String> candidates) {
+    final hash = candidates.join();
+    if (hash != _prevCandidatesHash) {
+      _prevCandidatesHash = hash;
+      _candidatesElement.innerHtml = candidates.map(_candidateInnerHtml).join();
     }
-    if (results.isEmpty || results.last != victoryPatter) {
-      var letters = rowData.word.split('');
-      for (int i = 0; i < rowData.word.length; i++) {
-        if (i == rowData.index) {
-          letters[i] = '[${letters[i]}]';
+  }
+
+  void _paintBoard(List<RowData> rows) {
+    _boardElement.innerHtml = rows.map(_boardRowInnerHtml).join();
+  }
+
+  String _boardRowInnerHtml(RowData row) {
+    return Iterable.generate(wordLength, (i) => _tileInnerHtml(row.letters[i], row.infos[i])).join();
+  }
+
+  String _tileInnerHtml(String letter, Info info) =>
+      '<div class="tile ${_tileState(letter, info)}">${_tileContent(letter)}</div>';
+
+  String _tileContent(String letter) => letter == emptyLetter ? '&nbsp;' : letter;
+
+  String _tileState(String letter, Info info) {
+    switch (info) {
+      case Info.absent:
+        return InfoClass.absent;
+      case Info.present:
+        return InfoClass.present;
+      case Info.correct:
+        return InfoClass.correct;
+      default:
+        return letter == emptyLetter ? InfoClass.empty : InfoClass.tbd;
+    }
+  }
+
+  void _paintKeyboard(List<RowData> rows) {
+    final keyMap = <String, Info>{};
+    for (final row in rows) {
+      for (int i = 0; i < wordLength; i++) {
+        final letter = row.letters[i];
+        final info = row.infos[i];
+        if (info != Info.tbd && (!keyMap.containsKey(letter) || keyMap[letter]!.index < info.index)) {
+          keyMap[letter] = info;
         }
       }
-      print('${letters.join()} ${rowData.result}');
     }
+    for (final letter in alphabet.split('')) {
+      final element = _keyboardElement.querySelector('#$letter')!;
+      element.classes.removeAll([InfoClass.absent, InfoClass.present, InfoClass.correct]);
+      if (keyMap.containsKey(letter)) {
+        element.classes.add(InfoClass.from(keyMap[letter]!));
+      }
+    }
+  }
+
+  String _candidateInnerHtml(String candidate) {
+    return '<div class="candidate">$candidate</div>';
   }
 }

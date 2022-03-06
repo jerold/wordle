@@ -4,10 +4,13 @@ enum HelperUpdate {
   reset,
   create,
   update,
+  toggle,
 }
 
-abstract class Controller extends RowData {
+abstract class Controller {
   Stream<HelperUpdate> get update;
+  RowData get rowData;
+  int get index;
 
   void reset();
 }

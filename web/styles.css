@@ -1,4 +1,12 @@
 :root {
+    --color-tone-1: #ffffff;
+    --color-tone-2: #818384;
+    --color-tone-3: #565758;
+    --color-tone-4: #3a3a3c;
+    --color-tone-5: #272729;
+    --color-tone-6: #1a1a1b;
+    --color-tone-7: #121213;
+
     --green: #6aaa64;
     --darkendGreen: #538d4e;
     --yellow: #c9b458;
@@ -11,7 +19,7 @@
     --orange: #f5793a;
     --blue: #85c0f9;
 
-
+    --letter-count: 5;
     --game-max-width: 500px;
 }
 
@@ -27,9 +35,33 @@ body {
 
     background-color: var(--black);
 
-    font-family: 'Frank Ruhl Libre', serif;
-    font-size: 32px;
+    font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
     color: var(--white);
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+
+    justify-content: center;
+    align-items: center;
+    padding-top: 20px;
+
+    user-select: none;
+}
+
+.github-link {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    height: 40px;
+    width: 40px;
+    opacity: 80%;
+    transition: transform ease-in-out .2s;
+    user-select: none;
+
+    background: url('github-logo.svg');
+    background-size: contain;
 }
 
 @keyframes Bounce {
@@ -58,6 +90,12 @@ body {
     }
 }
 
+.shake {
+    animation-name: Shake;
+    animation-duration: 250ms;
+    animation-timing-function: ease-in;
+}
+
 @keyframes Shake {
 
     10%,
@@ -82,48 +120,166 @@ body {
     }
 }
 
-.row {
+#board {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(var(--letter-count), 1fr);
     grid-gap: 5px;
 }
 
-.tile {
-    width: 100%;
-    display: inline-flex;
+#candidates {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 2rem;
+    line-height: 50px;
+
+
+    text-transform: uppercase;
     justify-content: center;
     align-items: center;
-    font-size: 2rem;
-    line-height: 2rem;
-    font-weight: bold;
     vertical-align: middle;
-    box-sizing: border-box;
+    text-align: center;
+
+    letter-spacing: 1rem;
+
+    overflow-y: scroll;
+    height: 600px;
+    margin-top: 5px;
+
+}
+
+#candidates::-webkit-scrollbar {
+    display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+#candidates {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+#candidates .candidate:first-child {
+    margin-top: 100px;
+}
+
+#candidates .candidate:last-child {
+    margin-bottom: 100px;
+}
+
+.tile {
+    width: 50px;
+    height: 50px;
+    border-radius: 2px;
+
+    justify-content: center;
+    align-items: center;
+    vertical-align: middle;
+    text-align: center;
+
+    font-size: 2rem;
+    line-height: 50px;
+    font-weight: bold;
     color: var(--tile-text-color);
     text-transform: uppercase;
     user-select: none;
 }
 
-.tile[data-state='empty'] {
-    border: 2px solid var(--color-tone-4);
+.tile.empty {
+    border: solid 2px var(--color-tone-4);
 }
 
-.container {
+.tile.tbd {
+    border: solid 2px var(--gray);
+}
+
+.tile.absent {
+    background-color: var(--gray);
+    border: solid 2px var(--gray);
+}
+
+.tile.present {
+    background-color: var(--yellow);
+    border: solid 2px var(--yellow);
+}
+
+.tile.correct {
+    background-color: var(--green);
+    border: solid 2px var(--green);
+}
+
+#keyboard {
+    position: absolute;
+    bottom: 0px;
+}
+
+.key-row {
     display: flex;
+    margin: 0 auto 5px;
+    touch-action: manipulation;
+    grid-gap: 5px;
+
+    align-items: center;
+    justify-content: center;
+}
+
+.key {
+    width: 40px;
+    height: 50px;
+    border-radius: 4px;
+
+    display: flex;
+
+    cursor: pointer;
+    user-select: none;
+
     justify-content: center;
     align-items: center;
-    padding: 80px;
-    padding-top: 20px;
 
-    user-select: none;
+    font-size: 1rem;
+    line-height: 50px;
+    font-weight: bold;
+    color: var(--tile-text-color);
+    text-transform: uppercase;
+
+    background-color: var(--color-tone-4);
+    border: solid 2px var(--gray);
 }
 
-.github-link {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    opacity: 80%;
-    transition: transform ease-in-out .2s;
-    user-select: none;
+.option-key {
+    width: 60px;
+}
+
+@media only screen and (max-device-width: 480px) {
+    .key {
+        width: 30px;
+        height: 40px;
+    }
+
+    .option-key {
+        width: 48px;
+    }
+}
+
+.key:active {
+    opacity: .8;
+    transform: scale(.9);
+}
+
+.key.absent {
+    background-color: var(--darkGray);
+    border: solid 2px var(--darkGray);
+}
+
+.key.present {
+    background-color: var(--darkendYellow);
+    border: solid 2px var(--darkendYellow);
+}
+
+.key.correct {
+    background-color: var(--darkendGreen);
+    border: solid 2px var(--darkendGreen);
 }
 
 .github-link:hover {

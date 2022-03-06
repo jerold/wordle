@@ -6,19 +6,64 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="scaffolded-by" content="https://github.com/dart-lang/stagehand">
     <title>Wordle Helper</title>
     <link rel="stylesheet" href="styles.css">
     <script defer src="main.dart.js"></script>
-    <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-    <div id="helper" class="container">Loading...</div>
-
-    <a class="github-link" href="https://github.com/jerold/wordle" title="Check me out on Github"><img
-            src="github-icon.png" width=30 height=30></a>
+    <div id="helper" class="container">
+        <div id="board">
+            <div class="tile empty">l</div>
+            <div class="tile empty">o</div>
+            <div class="tile empty">a</div>
+            <div class="tile empty">d</div>
+            <div class="tile empty">-</div>
+            <div class="tile empty">i</div>
+            <div class="tile empty">n</div>
+            <div class="tile empty">g</div>
+            <div class="tile empty">.</div>
+            <div class="tile empty">.</div>
+        </div>
+        <div id="candidates"></div>
+        <div id="keyboard">
+            <div class="key-row">
+                <div class="key" id="q">q</div>
+                <div class="key" id="w">w</div>
+                <div class="key" id="e">e</div>
+                <div class="key" id="r">r</div>
+                <div class="key" id="t">t</div>
+                <div class="key" id="y">y</div>
+                <div class="key" id="u">u</div>
+                <div class="key" id="i">i</div>
+                <div class="key" id="o">o</div>
+                <div class="key" id="p">p</div>
+            </div>
+            <div class="key-row">
+                <div class="key" id="a">a</div>
+                <div class="key" id="s">s</div>
+                <div class="key" id="d">d</div>
+                <div class="key" id="f">f</div>
+                <div class="key" id="g">g</div>
+                <div class="key" id="h">h</div>
+                <div class="key" id="j">j</div>
+                <div class="key" id="k">k</div>
+                <div class="key" id="l">l</div>
+            </div>
+            <div class="key-row">
+                <div class="key option-key" id="submit">⏎</div>
+                <div class="key" id="z">z</div>
+                <div class="key" id="x">x</div>
+                <div class="key" id="c">c</div>
+                <div class="key" id="v">v</div>
+                <div class="key" id="b">b</div>
+                <div class="key" id="n">n</div>
+                <div class="key" id="m">m</div>
+                <div class="key option-key" id="delete">⌫</div>
+            </div>
+        </div>
+    </div>
+    <a class="github-link" href="https://github.com/jerold/wordle" title="Check me out on Github"></a>
 </body>
 
 </html>

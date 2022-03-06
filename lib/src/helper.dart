@@ -6,13 +6,18 @@ import 'package:wordle/src/renderer.dart';
 import 'package:wordle/src/types.dart';
 import 'package:wordle/src/utils.dart';
 
+const maxRounds = 6;
+const maxCandidates = 5;
+
 class Helper {
   final Controller _controller;
   final Renderer _renderer;
 
   late List<Guess> _guesses;
   late List<Result> _results;
+
   String? _answer;
+  bool get playing => _answer != null;
 
   Helper(this._controller, this._renderer, {bool play = false}) {
     _resetHelperData(play);
@@ -21,7 +26,6 @@ class Helper {
   Future<void> init() async {
     _controller.update.listen(_onControllerUpdate);
     _renderer.init();
-    print('raise, arise, arose, alone, ratio, atone, irate, alter, alert, aisle, later, teary, leant, learn, early');
     _paint();
 
     // chug through all words to give us the word with highest expected info
@@ -31,7 +35,7 @@ class Helper {
   void _onControllerUpdate(HelperUpdate update) {
     switch (update) {
       case HelperUpdate.reset:
-        _onReset();
+        _onReset(playing);
         break;
       case HelperUpdate.create:
         _onCreate();
@@ -39,40 +43,90 @@ class Helper {
       case HelperUpdate.update:
         _paint();
         break;
+      case HelperUpdate.toggle:
+        _onReset(!playing);
+        break;
     }
   }
 
   void _resetHelperData(bool play) {
     _guesses = <Guess>[];
     _results = <Result>[];
-    _answer = allWords[Random().nextInt(allWords.length)];
-    print('raise, arise, arose, alone, ratio, atone, irate, alter, alert, aisle, later, teary, leant, learn, early');
+    print(play ? 'New Puzzle Generated, good luck!' : 'Ready to help!');
+    if (play) {
+      _answer = allWords[Random().nextInt(allWords.length)];
+    } else {
+      _answer = null;
+      print('Good starters: raise, arise, arose, alone, ratio, irate, alter, alert, aisle, later, leant, learn, early');
+    }
   }
 
   // update will flow to controller and then back here as a cursor update
-  void _onReset() {
-    print('--RESET--------------');
-    _resetHelperData(_answer != null);
+  void _onReset(bool play) {
+    _resetHelperData(playing);
+    _renderer.paintCandidates([]);
     _controller.reset();
   }
 
   void _onCreate() {
-    final word = _controller.word;
-    final result = _answer != null ? Result.from(word, _answer!) : _controller.result;
+    final word = _controller.rowData.word;
+
+    if (_results.length == maxRounds) {
+      print('  :( Sorry, 6 tries is all you get!');
+      return;
+    }
+
+    // don't submit empty guesses
+    if (word.trim().length != wordLength) {
+      print('  :( Can\'t submit an incomplete word!');
+      return;
+    }
+
+    if (!playing && _controller.rowData.result.infos.any((element) => element == Info.tbd)) {
+      print('   :( Please provide the pattern returns by Wordle for this word!');
+      return;
+    }
+
+    if (playing && _controller.rowData.result.infos.any((element) => element != Info.tbd)) {
+      print('   :) I\'ll handle the results, you can relax.');
+    }
+
+    final result = playing ? Result.from(word, _answer!) : _controller.rowData.result;
     final guess = _guesses.isEmpty ? Guess(word, allWords) : _guesses.last.next(word, _results.last);
+
     _guesses.add(guess);
     _results.add(result);
-    _printRemaining();
     _controller.reset();
+
+    _generateCandidates(guess, result);
   }
 
-  void _paint() => _renderer.paint(_guesses, _results, _controller);
-
-  void _printRemaining() {
-    if (_guesses.isNotEmpty) {
-      final remaining = _guesses.last.matches(_results.last).length;
-      print('Round:${_guesses.length} words:$remaining info:${getBits(1 / remaining).toStringAsFixed(2)}');
-      printAvgInfo(_guesses.last.expectedInfo(_results.last), limit: 10);
+  List<RowData> _getRowData() {
+    final rowData = <RowData>[];
+    for (int i = 0; i < _guesses.length; i++) {
+      rowData.add(RowData(
+        letters: _guesses[i].word.split(''),
+        infos: _results[i].infos,
+      ));
     }
+    return rowData;
+  }
+
+  Future<void> _generateCandidates(Guess guess, Result result) async {
+    if (!playing) {
+      var candidates = guess.expectedInfo(_results.last).keys.toList();
+      if (candidates.length > maxCandidates) {
+        candidates = candidates.sublist(0, maxCandidates);
+      }
+      _renderer.paintCandidates(candidates);
+    }
+  }
+
+  void _paint() {
+    final rowData = _getRowData();
+    if (_results.length < maxRounds && (_results.isEmpty || _results.last != victoryPatter)) {
+      rowData.add(_controller.rowData);
+    }
+    _renderer.paint(rowData);
   }
 }
