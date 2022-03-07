@@ -3786,7 +3786,7 @@ r.toString
 r=J.cc(r)
 q=r.$ti
 W.ab(r.a,r.b,q.h("~(1)?").a(new F.dJ(m)),!1,q.c)
-i=i.querySelector(k).querySelector(j).querySelector("#restart")
+i=i.querySelector("#restart")
 i.toString
 i=J.cc(i)
 q=i.$ti

@@ -19,6 +19,8 @@
     --orange: #f5793a;
     --blue: #85c0f9;
 
+    --tile-border-width: .1rem;
+
     --letter-count: 5;
     --tile-size: 50px;
     --game-max-width: 500px;
@@ -65,6 +67,25 @@ body {
 
     background: url('github-logo.svg');
     background-size: contain;
+}
+
+#restart {
+    position: absolute;
+    top: 14px;
+    left: 6px;
+    width: 41px;
+    height: 44px;
+    font-size: 2.4rem;
+    color: var(--orange);
+
+    cursor: pointer;
+    user-select: none;
+}
+
+#restart:active {
+    transition: transform .2s ease-in;
+    opacity: .8;
+    transform: rotate(-45deg);
 }
 
 @keyframes Bounce {
@@ -129,6 +150,12 @@ body {
     grid-gap: 5px;
 }
 
+#candidates {
+    background: linear-gradient(to bottom, var(--color-tone-2), 70%, var(--color-tone-4));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
 .small-tile {
     width: var(--tile-size);
     height: var(--tile-size);
@@ -145,7 +172,7 @@ body {
     color: var(--color-tone-2);
     text-transform: uppercase;
     user-select: none;
-    border: solid 2px var(--black);
+    border: solid var(--tile-border-width) var(--black);
 }
 
 .tile {
@@ -164,34 +191,35 @@ body {
     color: var(--tile-text-color);
     text-transform: uppercase;
     user-select: none;
+    border: solid var(--tile-border-width) var(--black);
 }
 
 .tile.empty {
-    border: solid 2px var(--color-tone-4);
+    border-color: var(--color-tone-4);
 }
 
 .tile.tbd {
-    border: solid 2px var(--gray);
+    border-color: var(--gray);
 }
 
 .tile.absent {
     background-color: var(--gray);
-    border: solid 2px var(--gray);
+    border-color: var(--gray);
 }
 
 .tile.present {
     background-color: var(--yellow);
-    border: solid 2px var(--yellow);
+    border-color: var(--yellow);
 }
 
 .tile.correct {
     background-color: var(--green);
-    border: solid 2px var(--green);
+    border-color: var(--green);
 }
 
 #keyboard {
     position: absolute;
-    bottom: 0px;
+    bottom: 10px;
 }
 
 .key-row {
@@ -229,7 +257,7 @@ body {
     text-transform: uppercase;
 
     background-color: var(--color-tone-4);
-    border: solid 2px var(--gray);
+    border: solid 2px var(--color-tone-4);
 }
 
 .option-key {
@@ -327,29 +355,20 @@ input:checked+.slider:before {
     border-radius: 50%;
 }
 
-#restart {
-    width: 40px;
-    height: 40px;
-    font-size: 2.4rem;
-    color: var(--orange);
-
-    cursor: pointer;
-    user-select: none;
-}
-
-#restart:active {
-    opacity: .8;
-    transform: scale(.9);
-}
-
 @media only screen and (max-device-width: 480px) {
+    .tile, .small-tile {
+        width: 12vw;
+        height: 12vw;
+        line-height: 12vw;
+    }
+
     .key {
-        width: 30px;
-        height: 40px;
+        width: 7vw;
+        height: 9vw;
     }
 
     .option-key {
-        width: 48px;
+        width: 12vw;
     }
 
     .github-link {

@@ -42,7 +42,7 @@ class WebController extends Controller {
 
   Element get _keyboardElement => _parentElement!.querySelector('#keyboard')!;
   Element get _toggleElement => _keyboardElement!.querySelector('#toggle-help')!;
-  Element get _restartElement => _keyboardElement!.querySelector('#restart')!;
+  Element get _restartElement => querySelector('#restart')!;
 
   late RowData _rowData;
   late int _index;
