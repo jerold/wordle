@@ -6,4 +6,6 @@ abstract class Renderer {
   void paint(List<RowData> rows);
 
   void paintCandidates(List<String> candidates);
+
+  void paintToggle(bool isChecked);
 }

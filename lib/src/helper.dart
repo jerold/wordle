@@ -19,11 +19,16 @@ class Helper {
   String? _answer;
   bool get playing => _answer != null;
 
+  late bool _showSuggestions;
+  List<String> _suggestions = [];
+
   Helper(this._controller, this._renderer, {bool play = false}) {
     _resetHelperData(play);
   }
 
   Future<void> init() async {
+    _showSuggestions = !playing;
+    _renderer.paintToggle(_showSuggestions);
     _controller.update.listen(_onControllerUpdate);
     _renderer.init();
     _paint();
@@ -44,7 +49,7 @@ class Helper {
         _paint();
         break;
       case HelperUpdate.toggle:
-        _onReset(!playing);
+        _onToggle();
         break;
     }
   }
@@ -52,6 +57,7 @@ class Helper {
   void _resetHelperData(bool play) {
     _guesses = <Guess>[];
     _results = <Result>[];
+    _suggestions = [];
     print(play ? 'New Puzzle Generated, good luck!' : 'Ready to help!');
     if (play) {
       _answer = allWords[Random().nextInt(allWords.length)];
@@ -63,9 +69,20 @@ class Helper {
 
   // update will flow to controller and then back here as a cursor update
   void _onReset(bool play) {
-    _resetHelperData(playing);
+    _resetHelperData(play);
     _renderer.paintCandidates([]);
     _controller.reset();
+  }
+
+  void _onToggle() {
+    _showSuggestions = !_showSuggestions;
+    _renderer.paintToggle(_showSuggestions);
+    print('Show($_showSuggestions)');
+    if (_showSuggestions) {
+      _renderer.paintCandidates(_suggestions);
+    } else {
+      _renderer.paintCandidates([]);
+    }
   }
 
   void _onCreate() {
@@ -113,12 +130,12 @@ class Helper {
   }
 
   Future<void> _generateCandidates(Guess guess, Result result) async {
-    if (!playing) {
-      var candidates = guess.expectedInfo(_results.last).keys.toList();
-      if (candidates.length > maxCandidates) {
-        candidates = candidates.sublist(0, maxCandidates);
-      }
-      _renderer.paintCandidates(candidates);
+    _suggestions = guess.expectedInfo(result).keys.toList();
+    if (_suggestions.length > maxCandidates) {
+      _suggestions = _suggestions.sublist(0, maxCandidates);
+    }
+    if (_showSuggestions) {
+      _renderer.paintCandidates(_suggestions);
     }
   }
 

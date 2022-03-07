@@ -30,18 +30,25 @@ const Map<int, CursorInput> cursorBindings = {
 };
 
 void main() {
+  final play = document.baseUri?.split('/#/').last == 'play';
+
   final controller = WebController();
   final renderer = WebRenderer();
-  Helper(controller, renderer, play: false).init();
+  Helper(controller, renderer, play: play).init();
 }
 
 class WebController extends Controller {
   late final StreamController<HelperUpdate> _helperController;
 
   Element get _keyboardElement => _parentElement!.querySelector('#keyboard')!;
+  Element get _toggleElement => _parentElement!.querySelector('#toggle-help')!;
 
   late RowData _rowData;
   late int _index;
+
+  // gestures for changing info on mobile
+  late Point _startTouch;
+  late Point _endTouch;
 
   WebController() {
     _helperController = StreamController<HelperUpdate>.broadcast();
@@ -49,11 +56,16 @@ class WebController extends Controller {
 
     document.body!.onKeyDown.listen(_onKeyDown);
 
+    document.body!.onTouchStart.listen(_onTouchStart);
+    document.body!.onTouchMove.listen(_onTouchMove);
+    document.body!.onTouchEnd.listen(_onTouchEnd);
+
     for (final letter in alphabet.split('')) {
       _keyboardElement.querySelector('#$letter')!.onClick.listen(_onClickLetter(letter));
     }
     _keyboardElement.querySelector('#submit')!.onClick.listen((_) => _updateHelper(HelperUpdate.create));
     _keyboardElement.querySelector('#delete')!.onClick.listen((_) => _onCursorInput(CursorInput.delete));
+    _toggleElement.onClick.listen((_) => _updateHelper(HelperUpdate.toggle));
   }
 
   @override
@@ -64,6 +76,29 @@ class WebController extends Controller {
 
   @override
   int get index => _index;
+
+  void _onTouchStart(TouchEvent e) {
+    _startTouch = e.touches!.first.client;
+    _endTouch = e.touches!.first.client;
+  }
+
+  void _onTouchMove(TouchEvent e) {
+    _endTouch = e.touches!.first.client;
+  }
+
+  void _onTouchEnd(TouchEvent e) {
+    if (_startTouch.distanceTo(_endTouch) > 40) {
+      final deltaY = _endTouch.y - _startTouch.y;
+      final deltaX = _endTouch.x - _startTouch.x;
+      if (deltaY.abs() > deltaX.abs()) {
+        if (deltaY > 0) {
+          _onCursorInput(CursorInput.down);
+        } else {
+          _onCursorInput(CursorInput.up);
+        }
+      }
+    }
+  }
 
   void _initRowData() {
     _rowData = RowData();
@@ -128,6 +163,7 @@ class WebRenderer extends Renderer {
   Element get _boardElement => _parentElement!.querySelector('#board')!;
   Element get _candidatesElement => _parentElement!.querySelector('#candidates')!;
   Element get _keyboardElement => _parentElement!.querySelector('#keyboard')!;
+  Element get _toggleElement => _parentElement!.querySelector('#toggle-help')!;
 
   String? _prevCandidatesHash;
 
@@ -149,6 +185,11 @@ class WebRenderer extends Renderer {
       _prevCandidatesHash = hash;
       _candidatesElement.innerHtml = candidates.map(_candidateInnerHtml).join();
     }
+  }
+
+  @override
+  void paintToggle(bool isChecked) {
+    (_toggleElement as InputElement).checked = isChecked;
   }
 
   void _paintBoard(List<RowData> rows) {
@@ -198,6 +239,8 @@ class WebRenderer extends Renderer {
   }
 
   String _candidateInnerHtml(String candidate) {
-    return '<div class="candidate">$candidate</div>';
+    return Iterable.generate(wordLength, (i) => _smallTileInnerHtml(candidate[i])).join();
   }
+
+  String _smallTileInnerHtml(String letter) => '<div class="small-tile">$letter</div>';
 }
