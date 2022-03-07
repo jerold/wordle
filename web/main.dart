@@ -41,7 +41,8 @@ class WebController extends Controller {
   late final StreamController<HelperUpdate> _helperController;
 
   Element get _keyboardElement => _parentElement!.querySelector('#keyboard')!;
-  Element get _toggleElement => _parentElement!.querySelector('#toggle-help')!;
+  Element get _toggleElement => _keyboardElement!.querySelector('#toggle-help')!;
+  Element get _restartElement => _keyboardElement!.querySelector('#restart')!;
 
   late RowData _rowData;
   late int _index;
@@ -66,6 +67,7 @@ class WebController extends Controller {
     _keyboardElement.querySelector('#submit')!.onClick.listen((_) => _updateHelper(HelperUpdate.create));
     _keyboardElement.querySelector('#delete')!.onClick.listen((_) => _onCursorInput(CursorInput.delete));
     _toggleElement.onClick.listen((_) => _updateHelper(HelperUpdate.toggle));
+    _restartElement.onClick.listen((_) => _updateHelper(HelperUpdate.reset));
   }
 
   @override

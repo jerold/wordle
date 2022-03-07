@@ -20,6 +20,7 @@
     --blue: #85c0f9;
 
     --letter-count: 5;
+    --tile-size: 50px;
     --game-max-width: 500px;
 }
 
@@ -128,18 +129,9 @@ body {
     grid-gap: 5px;
 }
 
-#candidates {
-    position: absolute;
-    bottom: 30vh;
-    align-items: center;
-    justify-content: center;
-    margin-left: auto;
-    margin-right: auto;
-}
-
 .small-tile {
-    width: 30px;
-    height: 30px;
+    width: var(--tile-size);
+    height: var(--tile-size);
     border-radius: 2px;
 
     justify-content: center;
@@ -148,16 +140,17 @@ body {
     text-align: center;
 
     font-size: 1rem;
-    line-height: 30px;
+    line-height: var(--tile-size);
     font-weight: normal;
     color: var(--color-tone-2);
     text-transform: uppercase;
     user-select: none;
+    border: solid 2px var(--black);
 }
 
 .tile {
-    width: 50px;
-    height: 50px;
+    width: var(--tile-size);
+    height: var(--tile-size);
     border-radius: 2px;
 
     justify-content: center;
@@ -166,7 +159,7 @@ body {
     text-align: center;
 
     font-size: 2rem;
-    line-height: 50px;
+    line-height: var(--tile-size);
     font-weight: bold;
     color: var(--tile-text-color);
     text-transform: uppercase;
@@ -241,17 +234,6 @@ body {
 
 .option-key {
     width: 60px;
-}
-
-@media only screen and (max-device-width: 480px) {
-    .key {
-        width: 30px;
-        height: 40px;
-    }
-
-    .option-key {
-        width: 48px;
-    }
 }
 
 .key:active {
@@ -343,4 +325,45 @@ input:checked+.slider:before {
 
 .slider.round:before {
     border-radius: 50%;
+}
+
+#restart {
+    width: 40px;
+    height: 40px;
+    font-size: 2.4rem;
+    color: var(--orange);
+
+    cursor: pointer;
+    user-select: none;
+}
+
+#restart:active {
+    opacity: .8;
+    transform: scale(.9);
+}
+
+@media only screen and (max-device-width: 480px) {
+    .key {
+        width: 30px;
+        height: 40px;
+    }
+
+    .option-key {
+        width: 48px;
+    }
+
+    .github-link {
+        position: absolute;
+        top: 18px;
+        right: 6px;
+        height: 38px;
+        width: 38px;
+        opacity: 80%;
+        transition: transform ease-in-out .2s;
+        user-select: none;
+
+        background: url('github-logo.svg');
+        background-size: contain;
+    }
+
 }
