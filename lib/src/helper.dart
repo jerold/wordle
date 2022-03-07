@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:wordle/src/controller.dart';
 import 'package:wordle/src/data/all_words.dart';
+import 'package:wordle/src/data/allowed_words.dart';
 import 'package:wordle/src/renderer.dart';
 import 'package:wordle/src/types.dart';
 import 'package:wordle/src/utils.dart';
@@ -96,6 +97,11 @@ class Helper {
     // don't submit empty guesses
     if (word.trim().length != wordLength) {
       print('  :( Can\'t submit an incomplete word!');
+      return;
+    }
+
+    if (!allowedWords.contains(word)) {
+      print('  :( Your word isn\'t in the allowed list!');
       return;
     }
 
