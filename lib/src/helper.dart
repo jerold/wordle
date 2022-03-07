@@ -4,7 +4,6 @@ import 'package:wordle/src/controller.dart';
 import 'package:wordle/src/data/all_words.dart';
 import 'package:wordle/src/renderer.dart';
 import 'package:wordle/src/types.dart';
-import 'package:wordle/src/utils.dart';
 
 const maxRounds = 6;
 const maxCandidates = 5;
