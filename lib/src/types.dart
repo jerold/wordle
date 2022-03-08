@@ -7,7 +7,7 @@ const emptyLetter = ' ';
 
 final initialLetters = List<String>.filled(wordLength, emptyLetter);
 final initialInfos = List<Info>.filled(wordLength, Info.tbd);
-final victoryPatter = Result(List<Info>.filled(wordLength, Info.correct));
+final victoryResult = Result(List<Info>.filled(wordLength, Info.correct));
 
 final emptyInfos = List<Info>.filled(wordLength, Info.absent);
 

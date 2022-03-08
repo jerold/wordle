@@ -1,11 +1,7 @@
 import 'package:wordle/src/types.dart';
 
 abstract class Renderer {
-  void init();
+  void init(bool playing);
 
-  void paint(List<RowData> rows);
-
-  void paintCandidates(List<String> candidates);
-
-  void paintToggle(bool isChecked);
+  void paint(List<RowData> rows, List<String> candidates);
 }

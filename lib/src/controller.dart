@@ -4,7 +4,6 @@ enum HelperUpdate {
   reset,
   create,
   update,
-  toggle,
 }
 
 abstract class Controller {

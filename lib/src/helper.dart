@@ -5,7 +5,6 @@ import 'package:wordle/src/data/all_words.dart';
 import 'package:wordle/src/data/allowed_words.dart';
 import 'package:wordle/src/renderer.dart';
 import 'package:wordle/src/types.dart';
-import 'package:wordle/src/utils.dart';
 
 const maxRounds = 6;
 const maxCandidates = 5;
@@ -20,18 +19,14 @@ class Helper {
   String? _answer;
   bool get playing => _answer != null;
 
-  late bool _showSuggestions;
-  List<String> _suggestions = [];
+  List<String> _candidates = [];
 
-  Helper(this._controller, this._renderer, {bool play = false}) {
+  Helper(this._controller, this._renderer);
+
+  Future<void> init(bool play) async {
     _resetHelperData(play);
-  }
-
-  Future<void> init() async {
-    _showSuggestions = !playing;
-    _renderer.paintToggle(_showSuggestions);
     _controller.update.listen(_onControllerUpdate);
-    _renderer.init();
+    _renderer.init(play);
     _paint();
 
     // chug through all words to give us the word with highest expected info
@@ -41,7 +36,7 @@ class Helper {
   void _onControllerUpdate(HelperUpdate update) {
     switch (update) {
       case HelperUpdate.reset:
-        _onReset(playing);
+        _onReset();
         break;
       case HelperUpdate.create:
         _onCreate();
@@ -49,41 +44,30 @@ class Helper {
       case HelperUpdate.update:
         _paint();
         break;
-      case HelperUpdate.toggle:
-        _onToggle();
-        break;
     }
   }
 
   void _resetHelperData(bool play) {
     _guesses = <Guess>[];
     _results = <Result>[];
-    _suggestions = [];
-    print(play ? 'New Puzzle Generated, good luck!' : 'Ready to help!');
     if (play) {
+      _candidates = [];
       _answer = allWords[Random().nextInt(allWords.length)];
     } else {
-      _answer = null;
-      print('Good starters: raise, arise, arose, alone, ratio, irate, alter, alert, aisle, later, leant, learn, early');
+      _candidates = [
+        'slate',
+        'crane',
+        'trace',
+        'audio',
+        'weary',
+      ];
     }
   }
 
   // update will flow to controller and then back here as a cursor update
-  void _onReset(bool play) {
-    _resetHelperData(play);
-    _renderer.paintCandidates([]);
+  void _onReset() {
+    _resetHelperData(playing);
     _controller.reset();
-  }
-
-  void _onToggle() {
-    _showSuggestions = !_showSuggestions;
-    _renderer.paintToggle(_showSuggestions);
-    print('Show($_showSuggestions)');
-    if (_showSuggestions) {
-      _renderer.paintCandidates(_suggestions);
-    } else {
-      _renderer.paintCandidates([]);
-    }
   }
 
   void _onCreate() {
@@ -136,20 +120,20 @@ class Helper {
   }
 
   Future<void> _generateCandidates(Guess guess, Result result) async {
-    _suggestions = guess.expectedInfo(result).keys.toList();
-    if (_suggestions.length > maxCandidates) {
-      _suggestions = _suggestions.sublist(0, maxCandidates);
-    }
-    if (_showSuggestions) {
-      _renderer.paintCandidates(_suggestions);
+    if (!playing) {
+      _candidates = guess.expectedInfo(result).keys.toList();
+      if (_candidates.length > maxCandidates) {
+        _candidates = _candidates.sublist(0, maxCandidates);
+      }
+      _paint();
     }
   }
 
   void _paint() {
     final rowData = _getRowData();
-    if (_results.length < maxRounds && (_results.isEmpty || _results.last != victoryPatter)) {
+    if (_results.length < maxRounds && (_results.isEmpty || _results.last != victoryResult)) {
       rowData.add(_controller.rowData);
     }
-    _renderer.paint(rowData);
+    _renderer.paint(rowData, _candidates);
   }
 }
