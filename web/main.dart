@@ -41,19 +41,11 @@ class WebController extends Controller {
   late RowData _rowData;
   late int _index;
 
-  // gestures for changing info on mobile
-  late Point _startTouch;
-  late Point _endTouch;
-
   WebController() {
     _helperController = StreamController<HelperUpdate>.broadcast();
     _initRowData();
 
     document.body!.onKeyDown.listen(_onKeyDown);
-
-    document.body!.onTouchStart.listen(_onTouchStart);
-    document.body!.onTouchMove.listen(_onTouchMove);
-    document.body!.onTouchEnd.listen(_onTouchEnd);
 
     for (final letter in alphabet.split('')) {
       _keyboardElement.querySelector('#$letter')!.onClick.listen(_onClickLetter(letter));
@@ -76,29 +68,6 @@ class WebController extends Controller {
 
   @override
   int get index => _index;
-
-  void _onTouchStart(TouchEvent e) {
-    _startTouch = e.touches!.first.client;
-    _endTouch = e.touches!.first.client;
-  }
-
-  void _onTouchMove(TouchEvent e) {
-    _endTouch = e.touches!.first.client;
-  }
-
-  void _onTouchEnd(TouchEvent e) {
-    if (_startTouch.distanceTo(_endTouch) > 40) {
-      final deltaY = _endTouch.y - _startTouch.y;
-      final deltaX = _endTouch.x - _startTouch.x;
-      if (deltaY.abs() > deltaX.abs()) {
-        if (deltaY > 0) {
-          _onCursorInput(CursorInput.down);
-        } else {
-          _onCursorInput(CursorInput.up);
-        }
-      }
-    }
-  }
 
   void _initRowData() {
     _rowData = RowData();
