@@ -4116,7 +4116,7 @@ ck(a,b){switch(b){case C.j:return"absent"
 case C.f:return"present"
 case C.d:return"correct"
 default:return a===" "?"empty":"tbd"}},
-c5(a){var s,r,q,p,o,n,m,l,k,j,i,h
+c5(a){var s,r,q,p,o,n,m,l,k,j,i,h,g
 t.E.a(a)
 s=P.bv(t.N,t.v)
 for(r=a.length,q=0;q<a.length;a.length===r||(0,H.eK)(a),++q){p=a[q]
@@ -4129,16 +4129,15 @@ h=j[k]
 if(h!==C.c)j=!s.G(i)||s.m(0,i).a<h.a
 else j=!1
 if(j)s.p(0,i,h)}}for(r="abcdefghijklmnopqrstuvwxyz".split(""),o=r.length,q=0;q<o;++q){i=r[q]
-if(s.G(i)){n=document.querySelector("#keyboard")
+if(s.G(i)){n=s.m(0,i)
+n.toString
+g="key "+H.p(G.hM(n))}else g="key"
+n=document.querySelector("#keyboard")
 n.toString
 n=n.querySelector("#"+H.p(i))
-n.toString
-m=s.m(0,i)
+m=n.className
 m.toString
-m="key "+H.p(G.hM(m))
-l=n.className
-l.toString
-if(l!==m)n.className=m}}}};(function aliases(){var s=J.O.prototype
+if(m!==g)n.className=g}}};(function aliases(){var s=J.O.prototype
 s.bm=s.i
 s=J.aJ.prototype
 s.bo=s.i

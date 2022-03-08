@@ -247,12 +247,11 @@ class WebRenderer extends Renderer {
       }
     }
     for (final letter in alphabet.split('')) {
-      if (keyMap.containsKey(letter)) {
-        _updateKey(
-          _keyboardElement.querySelector('#$letter')!,
-          'key ${InfoClass.from(keyMap[letter]!)}',
-        );
-      }
+      final className = keyMap.containsKey(letter) ? 'key ${InfoClass.from(keyMap[letter]!)}' : 'key';
+      _updateKey(
+        _keyboardElement.querySelector('#$letter')!,
+        className,
+      );
     }
   }
 
