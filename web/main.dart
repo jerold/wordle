@@ -7,8 +7,6 @@ import 'package:wordle/wordle.dart';
 
 const alphabet = 'abcdefghijklmnopqrstuvwxyz';
 
-Element? get _parentElement => querySelector('#helper');
-
 enum CursorInput {
   left,
   right,
@@ -37,8 +35,8 @@ void main() {
 class WebController extends Controller {
   late final StreamController<HelperUpdate> _helperController;
 
-  Element get _keyboardElement => _parentElement!.querySelector('#keyboard')!;
-  Element get _resetElement => querySelector('#reset')!;
+  Element get _keyboardElement => querySelector('#keyboard')!;
+  Element get _resetElement => _keyboardElement.querySelector('#reset')!;
 
   late RowData _rowData;
   late int _index;
@@ -169,15 +167,11 @@ class WebController extends Controller {
 class WebRenderer extends Renderer {
   WebRenderer();
 
-  Element get _boardElement => _parentElement!.querySelector('#board')!;
-  Element get _candidatesElement => _parentElement!.querySelector('#candidates')!;
-  Element get _keyboardElement => _parentElement!.querySelector('#keyboard')!;
-
-  String? _prevCandidatesHash;
+  Element get _boardElement => querySelector('#board')!;
+  Element get _keyboardElement => querySelector('#keyboard')!;
 
   @override
   void init(bool playing) {
-    assert(_parentElement != null, "Failed to mount Helper, unable to find element");
     if (!playing) {
       _showHelperKeys();
     }
