@@ -84,13 +84,6 @@ body {
     grid-gap: 5px;
 }
 
-/* #candidates {
-    background: linear-gradient(to bottom, var(--color-tone-2), 70%, var(--color-tone-4));
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-} */
-
 .tile {
     width: var(--tile-size);
     height: var(--tile-size);
@@ -114,6 +107,11 @@ body {
     font-size: 1rem;
     font-weight: normal;
     color: var(--color-tone-2);
+
+    opacity: 0.0;
+    animation: Appear .4s normal forwards;
+    animation-delay: .5s;
+    animation-iteration-count: 1;
 }
 
 .tile.empty {
