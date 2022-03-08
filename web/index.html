@@ -19,20 +19,44 @@
             <div class="tile empty">a</div>
             <div class="tile empty">d</div>
             <div class="tile empty">-</div>
+
             <div class="tile empty">i</div>
             <div class="tile empty">n</div>
             <div class="tile empty">g</div>
-            <div class="tile empty">&nbsp;</div>
-            <div class="tile empty">&nbsp;</div>
+            <div class="tile">&nbsp;</div>
+            <div class="tile">&nbsp;</div>
+
+            <div class="tile">&nbsp;</div>
+            <div class="tile">&nbsp;</div>
+            <div class="tile">&nbsp;</div>
+            <div class="tile">&nbsp;</div>
+            <div class="tile">&nbsp;</div>
+
+            <div class="tile">&nbsp;</div>
+            <div class="tile">&nbsp;</div>
+            <div class="tile">&nbsp;</div>
+            <div class="tile">&nbsp;</div>
+            <div class="tile">&nbsp;</div>
+
+            <div class="tile">&nbsp;</div>
+            <div class="tile">&nbsp;</div>
+            <div class="tile">&nbsp;</div>
+            <div class="tile">&nbsp;</div>
+            <div class="tile">&nbsp;</div>
+
+            <div class="tile">&nbsp;</div>
+            <div class="tile">&nbsp;</div>
+            <div class="tile">&nbsp;</div>
+            <div class="tile">&nbsp;</div>
+            <div class="tile">&nbsp;</div>
         </div>
         <div id="candidates"></div>
         <div id="keyboard">
             <div class="key-row pull-right">
-                <div class="label">toggle help</div>
-                <label class="switch">
-                    <input type="checkbox" id="toggle-help">
-                    <span class="slider round"></span>
-                </label>
+                <div class="key half-key absent hidden" id="make-absent">&nbsp;</div>
+                <div class="key half-key present hidden" id="make-present">&nbsp;</div>
+                <div class="key half-key correct hidden" id="make-correct">&nbsp;</div>
+                <div class="key half-key option-key" id="reset">⟲</div>
             </div>
             <div class="key-row">
                 <div class="key" id="q">q</div>
@@ -71,7 +95,6 @@
         </div>
     </div>
     <a class="github-link" href="https://github.com/jerold/wordle" title="Check me out on Github"></a>
-    <a id="restart" title="start a new puzzle">⟲</a>
 </body>
 
 </html>

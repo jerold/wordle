@@ -20,7 +20,6 @@ enum CursorInput {
 const Map<int, HelperUpdate> helperBindings = {
   KeyCode.ESC: HelperUpdate.reset,
   KeyCode.ENTER: HelperUpdate.create,
-  KeyCode.TILDE: HelperUpdate.toggle,
 };
 
 const Map<int, CursorInput> cursorBindings = {
@@ -30,19 +29,16 @@ const Map<int, CursorInput> cursorBindings = {
 };
 
 void main() {
-  final play = document.baseUri?.split('/#/').last == 'play';
-
   final controller = WebController();
   final renderer = WebRenderer();
-  Helper(controller, renderer, play: play).init();
+  Helper(controller, renderer).init(document.baseUri?.split('/#/').last == 'play');
 }
 
 class WebController extends Controller {
   late final StreamController<HelperUpdate> _helperController;
 
   Element get _keyboardElement => _parentElement!.querySelector('#keyboard')!;
-  Element get _toggleElement => _keyboardElement!.querySelector('#toggle-help')!;
-  Element get _restartElement => querySelector('#restart')!;
+  Element get _resetElement => querySelector('#reset')!;
 
   late RowData _rowData;
   late int _index;
@@ -66,8 +62,12 @@ class WebController extends Controller {
     }
     _keyboardElement.querySelector('#submit')!.onClick.listen((_) => _updateHelper(HelperUpdate.create));
     _keyboardElement.querySelector('#delete')!.onClick.listen((_) => _onCursorInput(CursorInput.delete));
-    _toggleElement.onClick.listen((_) => _updateHelper(HelperUpdate.toggle));
-    _restartElement.onClick.listen((_) => _updateHelper(HelperUpdate.reset));
+
+    _keyboardElement.querySelector('#make-absent')!.onClick.listen((_) => _changeInfo(Info.absent, update: true));
+    _keyboardElement.querySelector('#make-present')!.onClick.listen((_) => _changeInfo(Info.present, update: true));
+    _keyboardElement.querySelector('#make-correct')!.onClick.listen((_) => _changeInfo(Info.correct, update: true));
+
+    _resetElement.onClick.listen((_) => _updateHelper(HelperUpdate.reset));
   }
 
   @override
@@ -137,11 +137,11 @@ class WebController extends Controller {
         break;
       case CursorInput.up:
         if (_index == 0) return;
-        _rowData = _rowData.copyWith(_index - 1, info: _rowData.infos[index - 1].cycleUp);
+        _changeInfo(_rowData.infos[index - 1].cycleUp);
         break;
       case CursorInput.down:
         if (_index == 0) return;
-        _rowData = _rowData.copyWith(_index - 1, info: _rowData.infos[index - 1].cycleDown);
+        _changeInfo(_rowData.infos[index - 1].cycleDown);
         break;
       case CursorInput.delete:
         if (_index == 0) return;
@@ -150,6 +150,13 @@ class WebController extends Controller {
         break;
     }
     _updateHelper(HelperUpdate.update);
+  }
+
+  void _changeInfo(Info info, {bool update = false}) {
+    _rowData = _rowData.copyWith(_index - 1, info: info);
+    if (update) {
+      _updateHelper(HelperUpdate.update);
+    }
   }
 
   void _onCharacterInsert(String char) {
@@ -165,45 +172,59 @@ class WebRenderer extends Renderer {
   Element get _boardElement => _parentElement!.querySelector('#board')!;
   Element get _candidatesElement => _parentElement!.querySelector('#candidates')!;
   Element get _keyboardElement => _parentElement!.querySelector('#keyboard')!;
-  Element get _toggleElement => _parentElement!.querySelector('#toggle-help')!;
 
   String? _prevCandidatesHash;
 
   @override
-  void init() {
+  void init(bool playing) {
     assert(_parentElement != null, "Failed to mount Helper, unable to find element");
+    if (!playing) {
+      _showHelperKeys();
+    }
   }
 
-  @override
-  void paint(List<RowData> rows) {
-    _paintBoard(rows);
-    _paintKeyboard(rows);
-  }
-
-  @override
-  void paintCandidates(List<String> candidates) {
-    final hash = candidates.join();
-    if (hash != _prevCandidatesHash) {
-      _prevCandidatesHash = hash;
-      _candidatesElement.innerHtml = candidates.map(_candidateInnerHtml).join();
+  void _showHelperKeys() {
+    for (final id in ['#make-absent', '#make-present', '#make-correct']) {
+      _keyboardElement.querySelector(id)!.classes
+        ..remove('hidden')
+        ..add('appear');
     }
   }
 
   @override
-  void paintToggle(bool isChecked) {
-    (_toggleElement as InputElement).checked = isChecked;
+  void paint(List<RowData> rows, List<String> candidates) {
+    final tiles = _boardElement.children;
+    var t = 0;
+    var r = 0;
+    bool victory = false;
+    for (int i = 0; i < rows.length; i++, r++) {
+      final row = rows[i];
+      for (int l = 0; l < wordLength; l++, t++) {
+        _updateTile(tiles[t], 'tile ${_tileState(row.letters[l], row.infos[l])}', _tileContent(row.letters[l]));
+      }
+      victory = row.result == victoryResult;
+    }
+    if (!victory) {
+      for (int i = 0; i < candidates.length && r < maxRounds; i++, r++) {
+        final candidate = candidates[i];
+        for (int l = 0; l < wordLength; l++, t++) {
+          _updateTile(tiles[t], 'tile hint', _tileContent(candidate[l]));
+        }
+      }
+    }
+    for (; t < wordLength * maxRounds; t++) {
+      _updateTile(tiles[t], 'tile', '&nbsp;');
+    }
+    _paintKeyboard(rows);
   }
 
-  void _paintBoard(List<RowData> rows) {
-    _boardElement.innerHtml = rows.map(_boardRowInnerHtml).join();
+  void _updateTile(Element tile, String className, String innerHtml) {
+    if (tile.className != className || tile.innerHtml != innerHtml) {
+      tile
+        ..className = className
+        ..innerHtml = innerHtml;
+    }
   }
-
-  String _boardRowInnerHtml(RowData row) {
-    return Iterable.generate(wordLength, (i) => _tileInnerHtml(row.letters[i], row.infos[i])).join();
-  }
-
-  String _tileInnerHtml(String letter, Info info) =>
-      '<div class="tile ${_tileState(letter, info)}">${_tileContent(letter)}</div>';
 
   String _tileContent(String letter) => letter == emptyLetter ? '&nbsp;' : letter;
 
@@ -232,17 +253,18 @@ class WebRenderer extends Renderer {
       }
     }
     for (final letter in alphabet.split('')) {
-      final element = _keyboardElement.querySelector('#$letter')!;
-      element.classes.removeAll([InfoClass.absent, InfoClass.present, InfoClass.correct]);
       if (keyMap.containsKey(letter)) {
-        element.classes.add(InfoClass.from(keyMap[letter]!));
+        _updateKey(
+          _keyboardElement.querySelector('#$letter')!,
+          'key ${InfoClass.from(keyMap[letter]!)}',
+        );
       }
     }
   }
 
-  String _candidateInnerHtml(String candidate) {
-    return Iterable.generate(wordLength, (i) => _smallTileInnerHtml(candidate[i])).join();
+  void _updateKey(Element key, String className) {
+    if (key.className != className) {
+      key.className = className;
+    }
   }
-
-  String _smallTileInnerHtml(String letter) => '<div class="small-tile">$letter</div>';
 }
