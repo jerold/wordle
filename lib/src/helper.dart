@@ -78,6 +78,11 @@ class Helper {
       return;
     }
 
+    if (_results.isNotEmpty && _results.last == victoryResult) {
+      print('  :) You already got it!');
+      return;
+    }
+
     // don't submit empty guesses
     if (word.trim().length != wordLength) {
       print('  :( Can\'t submit an incomplete word!');
